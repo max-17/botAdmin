@@ -1,52 +1,67 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Box, DollarSign, Package, Users } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { formatPrice } from "@/lib/data-service"
-import { useOrders, useProducts, useUsers } from "@/lib/hooks"
+import Link from "next/link";
+import { Box, DollarSign, Package, Users } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+// import { formatPrice } from "@/lib/data-service"
+import { useOrders, useProducts, useUsers } from "@/lib/hooks";
 
 export default function Dashboard() {
-  const { data: orders = [] } = useOrders()
-  const { data: products = [] } = useProducts()
-  const { data: users = [] } = useUsers()
+  const { data: orders = [] } = useOrders();
+  const { data: products = [] } = useProducts();
+  const { data: users = [] } = useUsers();
 
   // Calculate some summary data
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
-  const newOrdersCount = orders.filter((order) => order.status === "PENDING" || order.status === "PROCESSING").length
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const newOrdersCount = orders.filter(
+    (order) => order.status === "PENDING" || order.status === "PROCESSING"
+  ).length;
 
   const getStatusText = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "Ожидает обработки"
+        return "Ожидает обработки";
       case "PROCESSING":
-        return "Обработка"
+        return "Обработка";
       case "SHIPPED":
-        return "Отправлен"
+        return "Отправлен";
       case "DELIVERED":
-        return "Доставлен"
+        return "Доставлен";
       case "CANCELLED":
-        return "Отменен"
+        return "Отменен";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "DELIVERED":
-        return "default"
+        return "default";
       case "SHIPPED":
-        return "secondary"
+        return "secondary";
       case "CANCELLED":
-        return "destructive"
+        return "destructive";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -57,8 +72,12 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${formatPrice(totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">+12% с прошлого месяца</p>
+            <div className="text-2xl font-bold">
+              ${formatPrice(totalRevenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              +12% с прошлого месяца
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -68,7 +87,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{newOrdersCount}</div>
-            <p className="text-xs text-muted-foreground">+2 со вчерашнего дня</p>
+            <p className="text-xs text-muted-foreground">
+              +2 со вчерашнего дня
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -96,7 +117,9 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Последние заказы</CardTitle>
-          <CardDescription>У вас {newOrdersCount} новых заказов</CardDescription>
+          <CardDescription>
+            У вас {newOrdersCount} новых заказов
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -112,16 +135,22 @@ export default function Dashboard() {
             </TableHeader>
             <TableBody>
               {orders.slice(0, 5).map((order) => {
-                const user = users.find((u) => u.id === order.userId)
+                const user = users.find((u) => u.id === order.userId);
                 return (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">#{order.id}</TableCell>
                     <TableCell>{user?.name || "Неизвестно"}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusText(order.status)}</Badge>
+                      <Badge variant={getStatusBadgeVariant(order.status)}>
+                        {getStatusText(order.status)}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">${formatPrice(order.total)}</TableCell>
+                    <TableCell>
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${formatPrice(order.total)}
+                    </TableCell>
                     <TableCell>
                       <Link href={`/admin/orders/${order.id}`}>
                         <Button variant="ghost" size="sm">
@@ -130,13 +159,12 @@ export default function Dashboard() {
                       </Link>
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

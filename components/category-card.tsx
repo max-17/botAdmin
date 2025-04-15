@@ -1,11 +1,11 @@
-import Link from "next/link"
+import Link from "next/link";
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CategoryCardProps {
-  id: string
-  name: string
-  icon: string
+  id: number;
+  name: string;
+  icon?: string;
 }
 
 export default function CategoryCard({ id, name, icon }: CategoryCardProps) {
@@ -18,6 +18,5 @@ export default function CategoryCard({ id, name, icon }: CategoryCardProps) {
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }
-
