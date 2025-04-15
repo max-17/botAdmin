@@ -1,34 +1,35 @@
 "use client"
 
+import Link from "next/link"
 import { Box, DollarSign, Package, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit } from "lucide-react"
-import type { Order, Product, Customer } from "@/lib/data-service"
+import { formatPrice } from "@/lib/data-service"
+import { useOrders, useProducts, useUsers } from "@/lib/hooks"
 
-interface DashboardProps {
-  orders: Order[]
-  products: Product[]
-  customers: Customer[]
-  onEditOrderStatus: (orderId: string, status: Order["status"]) => void
-}
+export default function Dashboard() {
+  const { data: orders = [] } = useOrders()
+  const { data: products = [] } = useProducts()
+  const { data: users = [] } = useUsers()
 
-export default function Dashboard({ orders, products, customers, onEditOrderStatus }: DashboardProps) {
   // Calculate some summary data
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
-  const newOrdersCount = orders.filter((order) => order.status === "Processing").length
-  const outOfStockCount = products.filter((product) => product.stockStatus === "Out of Stock").length
+  const newOrdersCount = orders.filter((order) => order.status === "PENDING" || order.status === "PROCESSING").length
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "Processing":
+      case "PENDING":
+        return "Ожидает обработки"
+      case "PROCESSING":
         return "Обработка"
-      case "Dispatched":
+      case "SHIPPED":
         return "Отправлен"
-      case "Delivered":
+      case "DELIVERED":
         return "Доставлен"
+      case "CANCELLED":
+        return "Отменен"
       default:
         return status
     }
@@ -36,10 +37,12 @@ export default function Dashboard({ orders, products, customers, onEditOrderStat
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "Delivered":
+      case "DELIVERED":
         return "default"
-      case "Dispatched":
+      case "SHIPPED":
         return "secondary"
+      case "CANCELLED":
+        return "destructive"
       default:
         return "outline"
     }
@@ -54,7 +57,7 @@ export default function Dashboard({ orders, products, customers, onEditOrderStat
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${formatPrice(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">+12% с прошлого месяца</p>
           </CardContent>
         </Card>
@@ -75,17 +78,17 @@ export default function Dashboard({ orders, products, customers, onEditOrderStat
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products.length}</div>
-            <p className="text-xs text-muted-foreground">{outOfStockCount} нет в наличии</p>
+            <p className="text-xs text-muted-foreground">Всего товаров</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Активные клиенты</CardTitle>
+            <CardTitle className="text-sm font-medium">Клиенты</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{customers.length}</div>
-            <p className="text-xs text-muted-foreground">+2 новых на этой неделе</p>
+            <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-muted-foreground">Активных клиентов</p>
           </CardContent>
         </Card>
       </div>
@@ -93,7 +96,7 @@ export default function Dashboard({ orders, products, customers, onEditOrderStat
       <Card>
         <CardHeader>
           <CardTitle>Последние заказы</CardTitle>
-          <CardDescription>У вас {newOrdersCount} новых заказов сегодня</CardDescription>
+          <CardDescription>У вас {newOrdersCount} новых заказов</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -108,22 +111,27 @@ export default function Dashboard({ orders, products, customers, onEditOrderStat
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.slice(0, 5).map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">#{order.id}</TableCell>
-                  <TableCell>{order.recipientName}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusText(order.status)}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => onEditOrderStatus(order.id, order.status)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {orders.slice(0, 5).map((order) => {
+                const user = users.find((u) => u.id === order.userId)
+                return (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">#{order.id}</TableCell>
+                    <TableCell>{user?.name || "Неизвестно"}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusText(order.status)}</Badge>
+                    </TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">${formatPrice(order.total)}</TableCell>
+                    <TableCell>
+                      <Link href={`/admin/orders/${order.id}`}>
+                        <Button variant="ghost" size="sm">
+                          Детали
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>

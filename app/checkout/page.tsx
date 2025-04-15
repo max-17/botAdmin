@@ -17,12 +17,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format } from "date-fns"
 import MobileHeader from "@/components/mobile-header"
-import { getCartWithDetails, createOrder } from "@/lib/data-service"
-import type { OrderItem } from "@/lib/data-service"
+import { getCartWithDetails, createOrder, getUsers, formatPrice } from "@/lib/data-service"
+import type { OrderItem, DeliveryType } from "@/lib/data-service"
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const [deliveryType, setDeliveryType] = useState("DELIVERY")
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("DELIVERY")
   const [date, setDate] = useState<Date | undefined>(new Date())
   const [time, setTime] = useState<string>("9-11")
   const [fullName, setFullName] = useState("Др. Иван Петров")
@@ -43,25 +43,34 @@ export default function CheckoutPage() {
     // Create delivery time string
     const deliveryTime = date ? `${format(date, "yyyy-MM-dd")}T${time.split("-")[0]}:00:00Z` : new Date().toISOString()
 
+    // Get the first user (in a real app, this would be the current user)
+    const users = getUsers()
+    const userId = users.length > 0 ? users[0].id : 0
+
+    if (userId === 0) {
+      console.error("No user found")
+      return
+    }
+
     // Create order items from cart
-    const orderItems: OrderItem[] = cartDetails.items.map((item) => ({
+    const orderItems: Omit<OrderItem, "id" | "orderId">[] = cartDetails.items.map((item) => ({
       productId: item.productId,
       name: item.product.name,
       quantity: item.quantity,
       price: item.product.price,
-      image: item.product.imageUrl,
     }))
 
+    // Calculate total (including delivery fee)
+    const deliveryFee = 500 // 5.00 в копейках
+    const total = cartDetails.subtotal + deliveryFee
+
     // Create the order
-    const order = createOrder({
-      status: "Processing",
-      total: cartDetails.subtotal + 5, // Adding delivery fee
+    createOrder({
+      userId,
       items: orderItems,
-      deliveryType: deliveryType as "DELIVERY" | "PICKUP",
+      delivery: deliveryType,
       deliveryAt: deliveryTime,
-      recipientName: fullName,
-      recipientPhone: phone,
-      ...(deliveryType === "DELIVERY" ? { address, apartment, entrance, room } : {}),
+      total,
     })
 
     // Redirect to confirmation page
@@ -95,7 +104,11 @@ export default function CheckoutPage() {
           <Card className="p-4">
             <h2 className="text-lg font-semibold mb-4">Способ доставки</h2>
 
-            <RadioGroup value={deliveryType} onValueChange={setDeliveryType} className="space-y-3">
+            <RadioGroup
+              value={deliveryType}
+              onValueChange={(value) => setDeliveryType(value as DeliveryType)}
+              className="space-y-3"
+            >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="DELIVERY" id="delivery" />
                 <Label htmlFor="delivery" className="flex-1">
@@ -189,16 +202,16 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Подытог ({cartDetails.items.length} товаров)</span>
-                <span>${cartDetails.subtotal.toFixed(2)}</span>
+                <span>${formatPrice(cartDetails.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Доставка</span>
-                <span>$5.00</span>
+                <span>${formatPrice(500)}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>Итого</span>
-                <span>${(cartDetails.subtotal + 5).toFixed(2)}</span>
+                <span>${formatPrice(cartDetails.subtotal + 500)}</span>
               </div>
             </div>
           </Card>

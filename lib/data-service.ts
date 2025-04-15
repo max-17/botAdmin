@@ -1,379 +1,160 @@
-// Define types for our data model
-export interface Category {
-  id: string
-  name: string
-  icon: string
+import { PrismaClient } from "@prisma/client";
+// import { formatPrice } from "./utils"; // Assuming you have a utility file for formatting prices
+import type { OrderItem, Product } from "@prisma/client";
+const prisma = new PrismaClient();
+
+// Categories
+export async function getCategories() {
+  return await prisma.category.findMany();
 }
 
-export interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  imageUrl: string
-  stockStatus: "In Stock" | "Limited Stock" | "Out of Stock"
-  categoryId: string
+export async function getCategory(id: number) {
+  return await prisma.category.findUnique({ where: { id } });
 }
 
-export interface CartItem {
-  productId: string
+// Products
+export async function getProducts() {
+  return await prisma.product.findMany();
+}
+
+export async function getProductsByCategory(categoryId: number) {
+  return await prisma.product.findMany({ where: { categoryId } });
+}
+
+export async function getProduct(id: number) {
+  return await prisma.product.findUnique({ where: { id } });
+}
+
+export async function createProduct(
+  product: Omit<Product, "id" | "createdAt" | "updatedAt">
+) {
+  return await prisma.product.create({
+    data: {
+      ...product,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function updateProduct(
+  id: number,
+  updates: Partial<Omit<Product, "id" | "createdAt" | "updatedAt">>
+) {
+  return await prisma.product.update({
+    where: { id },
+    data: {
+      ...updates,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function deleteProduct(id: number) {
+  return await prisma.product.delete({ where: { id } });
+}
+
+// Cart
+export async function getCart(userId: number) {
+  return await prisma.orderItem.findMany({
+    where: { Order: { userId, status: "PENDING" } },
+  });
+}
+
+export async function addToCart(
+  userId: number,
+  productId: number,
+  quantity = 1
+) {
+  return await prisma.orderItem.upsert({
+    where: { Order: { userId, status: "PENDING" }, productId },
+  });
+}
+
+export async function updateorderItem(
+  userId: number,
+  productId: number,
   quantity: number
+) {
+  return await prisma.orderItem.update({
+    where: { userId_productId: { userId, productId } },
+    data: { quantity },
+  });
 }
 
-export interface OrderItem {
-  productId: string
-  name: string
-  quantity: number
-  price: number
-  image: string
+export async function removeFromCart(userId: number, productId: number) {
+  return await prisma.orderItem.delete({
+    where: { userId_productId: { userId, productId } },
+  });
 }
 
-export interface Order {
-  id: string
-  status: "Processing" | "Dispatched" | "Delivered"
-  total: number
-  items: OrderItem[]
-  deliveryType: "DELIVERY" | "PICKUP"
-  deliveryAt: string
-  createdAt: string
-  address?: string
-  apartment?: string
-  entrance?: string
-  room?: string
-  recipientName: string
-  recipientPhone: string
+export async function clearCart(userId: number) {
+  return await prisma.orderItem.deleteMany({ where: { userId } });
 }
 
-export interface Customer {
-  id: string
-  name: string
-  phone: string
+// Orders
+export async function getOrders(userId: number) {
+  return await prisma.order.findMany({
+    where: { userId },
+    include: { items: true },
+  });
 }
 
-// Initial data
-const initialCategories: Category[] = [
-  { id: "1", name: "Стоматологические инструменты", icon: "🦷" },
-  { id: "2", name: "Реставрационные материалы", icon: "🛠️" },
-  { id: "3", name: "Эндодонтические материалы", icon: "🪥" },
-  { id: "4", name: "Стерилизация и дезинфекция", icon: "🧴" },
-]
+export async function getOrder(id: number) {
+  return await prisma.order.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+}
 
-const initialProducts: Product[] = [
-  {
-    id: "101",
-    name: "Стоматологическое зеркало",
-    description: "Высококачественное стоматологическое зеркало из нержавеющей стали для осмотра.",
-    price: 5.0,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-    stockStatus: "In Stock",
-    categoryId: "1",
-  },
-  {
-    id: "102",
-    name: "Композитный пломбировочный материал",
-    description: "Светоотверждаемая композитная смола для реставрации зубов.",
-    price: 45.0,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-    stockStatus: "Limited Stock",
-    categoryId: "2",
-  },
-  {
-    id: "103",
-    name: "Файлы для корневых каналов",
-    description: "Файлы из нержавеющей стали для эндодонтического лечения.",
-    price: 15.0,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-    stockStatus: "Out of Stock",
-    categoryId: "3",
-  },
-  {
-    id: "104",
-    name: "Автоклав-стерилизатор",
-    description: "Стерилизатор высокой емкости для стоматологических инструментов.",
-    price: 500.0,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-    stockStatus: "In Stock",
-    categoryId: "4",
-  },
-]
+export async function createOrder(orderData: {
+  userId: number;
+  items: Omit<OrderItem, "id" | "orderId">[];
+  delivery: DeliveryType;
+  deliveryAt: string;
+  total: number;
+}) {
+  const { userId, items, delivery, deliveryAt, total } = orderData;
 
-const initialOrders: Order[] = [
-  {
-    id: "001",
-    status: "Processing",
-    total: 50.0,
-    items: [
-      {
-        productId: "101",
-        name: "Стоматологическое зеркало",
-        quantity: 2,
-        price: 5.0,
-        image: "/placeholder.svg?height=100&width=100",
+  const newOrder = await prisma.order.create({
+    data: {
+      userId,
+      delivery,
+      deliveryAt: new Date(deliveryAt),
+      total,
+      status: "PENDING",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      items: {
+        create: items.map((item) => ({
+          productId: item.productId,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
       },
-      {
-        productId: "102",
-        name: "Композитный пломбировочный материал",
-        quantity: 1,
-        price: 40.0,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    deliveryType: "DELIVERY",
-    deliveryAt: "2025-04-05T14:00:00Z",
-    createdAt: "2025-04-01T10:30:00Z",
-    recipientName: "Др. Иван Петров",
-    recipientPhone: "+998901234567",
-    address: "ул. Пушкина, 25",
-    apartment: "3",
-    entrance: "1",
-    room: "6",
-  },
-  {
-    id: "002",
-    status: "Dispatched",
-    total: 500.0,
-    items: [
-      {
-        productId: "104",
-        name: "Автоклав-��терилизатор",
-        quantity: 1,
-        price: 500.0,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    deliveryType: "PICKUP",
-    deliveryAt: "2025-04-03T16:00:00Z",
-    createdAt: "2025-04-01T11:45:00Z",
-    recipientName: "Др. Иван Петров",
-    recipientPhone: "+998901234567",
-  },
-  {
-    id: "003",
-    status: "Delivered",
-    total: 15.0,
-    items: [
-      {
-        productId: "103",
-        name: "Файлы для корневых каналов",
-        quantity: 1,
-        price: 15.0,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    deliveryType: "DELIVERY",
-    deliveryAt: "2025-03-30T09:00:00Z",
-    createdAt: "2025-03-28T08:20:00Z",
-    recipientName: "Др. Иван Петров",
-    recipientPhone: "+998901234567",
-    address: "ул. Пушкина, 25",
-    apartment: "3",
-    entrance: "1",
-    room: "6",
-  },
-]
-
-const initialCustomers: Customer[] = [
-  {
-    id: "201",
-    name: "Др. Иван Петров",
-    phone: "+998901234567",
-  },
-]
-
-// Helper function to initialize localStorage
-function initializeLocalStorage() {
-  if (typeof window !== "undefined") {
-    // Check if localStorage is already initialized
-    if (!localStorage.getItem("initialized")) {
-      localStorage.setItem("categories", JSON.stringify(initialCategories))
-      localStorage.setItem("products", JSON.stringify(initialProducts))
-      localStorage.setItem("orders", JSON.stringify(initialOrders))
-      localStorage.setItem("customers", JSON.stringify(initialCustomers))
-      localStorage.setItem("cart", JSON.stringify([]))
-      localStorage.setItem("initialized", "true")
-    }
-  }
-}
-
-// Data service functions
-export function getCategories(): Category[] {
-  initializeLocalStorage()
-  if (typeof window !== "undefined") {
-    const categories = localStorage.getItem("categories")
-    return categories ? JSON.parse(categories) : []
-  }
-  return []
-}
-
-export function getProducts(): Product[] {
-  initializeLocalStorage()
-  if (typeof window !== "undefined") {
-    const products = localStorage.getItem("products")
-    return products ? JSON.parse(products) : []
-  }
-  return []
-}
-
-export function getProductsByCategory(categoryId: string): Product[] {
-  const products = getProducts()
-  return products.filter((product) => product.categoryId === categoryId)
-}
-
-export function getProduct(id: string): Product | undefined {
-  const products = getProducts()
-  return products.find((product) => product.id === id)
-}
-
-export function getCart(): CartItem[] {
-  initializeLocalStorage()
-  if (typeof window !== "undefined") {
-    const cart = localStorage.getItem("cart")
-    return cart ? JSON.parse(cart) : []
-  }
-  return []
-}
-
-export function getCartWithDetails(): {
-  items: (CartItem & { product: Product })[]
-  subtotal: number
-} {
-  const cartItems = getCart()
-  const products = getProducts()
-
-  const items = cartItems.map((item) => {
-    const product = products.find((p) => p.id === item.productId)!
-    return {
-      ...item,
-      product,
-    }
-  })
-
-  const subtotal = items.reduce((sum, item) => {
-    return sum + item.product.price * item.quantity
-  }, 0)
-
-  return { items, subtotal }
-}
-
-export function addToCart(productId: string, quantity = 1) {
-  if (typeof window === "undefined") return
-
-  const cart = getCart()
-  const existingItem = cart.find((item) => item.productId === productId)
-
-  if (existingItem) {
-    existingItem.quantity += quantity
-  } else {
-    cart.push({ productId, quantity })
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart))
-}
-
-export function updateCartItem(productId: string, quantity: number) {
-  if (typeof window === "undefined") return
-
-  const cart = getCart()
-  const updatedCart = cart.map((item) => (item.productId === productId ? { ...item, quantity } : item))
-
-  localStorage.setItem("cart", JSON.stringify(updatedCart))
-}
-
-export function removeFromCart(productId: string) {
-  if (typeof window === "undefined") return
-
-  const cart = getCart()
-  const updatedCart = cart.filter((item) => item.productId !== productId)
-
-  localStorage.setItem("cart", JSON.stringify(updatedCart))
-}
-
-export function clearCart() {
-  if (typeof window === "undefined") return
-  localStorage.setItem("cart", JSON.stringify([]))
-}
-
-export function getOrders(): Order[] {
-  initializeLocalStorage()
-  if (typeof window !== "undefined") {
-    const orders = localStorage.getItem("orders")
-    return orders ? JSON.parse(orders) : []
-  }
-  return []
-}
-
-export function getOrder(id: string): Order | undefined {
-  const orders = getOrders()
-  return orders.find((order) => order.id === id)
-}
-
-export function createOrder(order: Omit<Order, "id" | "createdAt">): Order {
-  if (typeof window === "undefined") return {} as Order
-
-  const orders = getOrders()
-  const newOrder: Order = {
-    ...order,
-    id: `${orders.length + 1}`.padStart(3, "0"),
-    createdAt: new Date().toISOString(),
-  }
-
-  orders.push(newOrder)
-  localStorage.setItem("orders", JSON.stringify(orders))
+    },
+    include: { items: true },
+  });
 
   // Clear cart after order is created
-  clearCart()
+  await clearCart(userId);
 
-  return newOrder
+  return newOrder;
 }
 
-export function updateOrderStatus(id: string, status: Order["status"]) {
-  if (typeof window === "undefined") return
-
-  const orders = getOrders()
-  const updatedOrders = orders.map((order) => (order.id === id ? { ...order, status } : order))
-
-  localStorage.setItem("orders", JSON.stringify(updatedOrders))
+export async function updateOrderStatus(id: number, status: OrderStatus) {
+  return await prisma.order.update({
+    where: { id },
+    data: { status, updatedAt: new Date() },
+  });
 }
 
-export function getCustomers(): Customer[] {
-  initializeLocalStorage()
-  if (typeof window !== "undefined") {
-    const customers = localStorage.getItem("customers")
-    return customers ? JSON.parse(customers) : []
-  }
-  return []
+// Users
+export async function getUsers() {
+  return await prisma.user.findMany();
 }
 
-export function createProduct(product: Omit<Product, "id">): Product {
-  if (typeof window === "undefined") return {} as Product
-
-  const products = getProducts()
-  const newProduct: Product = {
-    ...product,
-    id: `${Math.floor(Math.random() * 1000)}`,
-  }
-
-  products.push(newProduct)
-  localStorage.setItem("products", JSON.stringify(products))
-
-  return newProduct
+export async function getUser(id: number) {
+  return await prisma.user.findUnique({ where: { id } });
 }
-
-export function updateProduct(id: string, updates: Partial<Product>) {
-  if (typeof window === "undefined") return
-
-  const products = getProducts()
-  const updatedProducts = products.map((product) => (product.id === id ? { ...product, ...updates } : product))
-
-  localStorage.setItem("products", JSON.stringify(updatedProducts))
-}
-
-export function deleteProduct(id: string) {
-  if (typeof window === "undefined") return
-
-  const products = getProducts()
-  const updatedProducts = products.filter((product) => product.id !== id)
-
-  localStorage.setItem("products", JSON.stringify(updatedProducts))
-}
-

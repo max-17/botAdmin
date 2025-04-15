@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import MobileHeader from "@/components/mobile-header"
-import StockBadge from "@/components/stock-badge"
-import { getCartWithDetails } from "@/lib/data-service"
+import AvailabilityBadge from "@/components/availability-badge"
+import { getCartWithDetails, formatPrice } from "@/lib/data-service"
 import { useCart } from "@/components/cart-provider"
 
 export default function CartPage() {
@@ -21,16 +21,18 @@ export default function CartPage() {
     setCartDetails(getCartWithDetails())
   }, [])
 
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (productId: number, newQuantity: number) => {
     if (newQuantity < 1) return
     updateCartItem(productId, newQuantity)
     setCartDetails(getCartWithDetails())
   }
 
-  const handleRemoveItem = (productId: string) => {
+  const handleRemoveItem = (productId: number) => {
     removeFromCart(productId)
     setCartDetails(getCartWithDetails())
   }
+
+  const deliveryFee = 500 // 5.00 в копейках
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -74,7 +76,7 @@ export default function CartPage() {
                         </Button>
                       </div>
 
-                      <StockBadge status={item.product.stockStatus} />
+                      <AvailabilityBadge isAvailable={true} />
 
                       <div className="flex justify-between items-center mt-2">
                         <div className="flex items-center border rounded-md">
@@ -97,7 +99,7 @@ export default function CartPage() {
                           </Button>
                         </div>
 
-                        <p className="font-bold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-bold">${formatPrice(item.product.price * item.quantity)}</p>
                       </div>
                     </div>
                   </div>
@@ -108,16 +110,16 @@ export default function CartPage() {
             <Card className="p-4 mb-6">
               <div className="flex justify-between mb-2">
                 <span>Подытог</span>
-                <span>${cartDetails.subtotal.toFixed(2)}</span>
+                <span>${formatPrice(cartDetails.subtotal)}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span>Доставка</span>
-                <span>$5.00</span>
+                <span>${formatPrice(deliveryFee)}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>Итого</span>
-                <span>${(cartDetails.subtotal + 5).toFixed(2)}</span>
+                <span>${formatPrice(cartDetails.subtotal + deliveryFee)}</span>
               </div>
             </Card>
 

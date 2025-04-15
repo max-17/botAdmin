@@ -2,14 +2,13 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { Customer, Order } from "@/lib/data-service"
+import { formatPrice } from "@/lib/data-service"
+import { useUsers, useOrders } from "@/lib/hooks"
 
-interface CustomersManagementProps {
-  customers: Customer[]
-  orders: Order[]
-}
+export default function CustomersManagement() {
+  const { data: users = [] } = useUsers()
+  const { data: orders = [] } = useOrders()
 
-export default function CustomersManagement({ customers, orders }: CustomersManagementProps) {
   return (
     <Card>
       <CardHeader>
@@ -28,20 +27,20 @@ export default function CustomersManagement({ customers, orders }: CustomersMana
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer) => {
-              const customerOrders = orders.filter((order) => order.recipientName === customer.name)
-              const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0)
+            {users.map((user) => {
+              const userOrders = orders.filter((order) => order.userId === user.id)
+              const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0)
               const lastOrder =
-                customerOrders.length > 0
-                  ? customerOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+                userOrders.length > 0
+                  ? userOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
                   : null
 
               return (
-                <TableRow key={customer.id}>
-                  <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell>{customer.phone}</TableCell>
-                  <TableCell>{customerOrders.length}</TableCell>
-                  <TableCell>${totalSpent.toFixed(2)}</TableCell>
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.phone}</TableCell>
+                  <TableCell>{userOrders.length}</TableCell>
+                  <TableCell>${formatPrice(totalSpent)}</TableCell>
                   <TableCell>{lastOrder ? new Date(lastOrder.createdAt).toLocaleDateString() : "Н/Д"}</TableCell>
                 </TableRow>
               )

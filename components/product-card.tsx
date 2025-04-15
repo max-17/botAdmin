@@ -6,26 +6,17 @@ import { ShoppingCart } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import StockBadge from "@/components/stock-badge"
+import AvailabilityBadge from "@/components/availability-badge"
 import { useCart } from "@/components/cart-provider"
 import { useToast } from "@/components/ui/use-toast"
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  imageUrl: string
-  stockStatus: string
-  categoryId: string
-}
+import { formatPrice } from "@/lib/data-service"
+import type { Product } from "@/lib/data-service"
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const isOutOfStock = product.stockStatus === "Out of Stock"
   const { addToCart } = useCart()
   const { toast } = useToast()
 
@@ -51,16 +42,16 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <Link href={`/product/${product.id}`} className="hover:underline">
                   <h3 className="font-medium">{product.name}</h3>
                 </Link>
-                <StockBadge status={product.stockStatus} />
+                <AvailabilityBadge isAvailable={true} />
               </div>
 
               <p className="text-sm text-gray-600 line-clamp-2 mt-1">{product.description}</p>
             </div>
 
             <div className="flex justify-between items-center mt-2">
-              <p className="font-bold">${product.price.toFixed(2)}</p>
+              <p className="font-bold">${formatPrice(product.price)}</p>
 
-              <Button size="sm" disabled={isOutOfStock} className="h-8" onClick={handleAddToCart}>
+              <Button size="sm" className="h-8" onClick={handleAddToCart}>
                 <ShoppingCart className="h-4 w-4" />
                 <span className="sr-only">Добавить в корзину</span>
               </Button>

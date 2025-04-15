@@ -1,11 +1,11 @@
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 interface MobileHeaderProps {
-  title: string
-  backUrl?: string
+  title: string;
+  backUrl?: string;
 }
 
 export default function MobileHeader({ title, backUrl }: MobileHeaderProps) {
@@ -21,12 +21,13 @@ export default function MobileHeader({ title, backUrl }: MobileHeaderProps) {
           </Link>
         )}
         <h1 className="font-semibold">{title}</h1>
-        <Link href="/admin" className="ml-auto rounded-lg p-2 bg-black text-white">
-          {" "}
-          Админ{" "}
+        <Link
+          href="/admin"
+          className="ml-auto rounded-lg p-2 bg-black text-white"
+        >
+          Админ
         </Link>
       </div>
     </header>
-  )
+  );
 }
-
