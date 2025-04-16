@@ -1,64 +1,69 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { User, Phone, MapPin, Calendar, Clock } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatPrice } from "@/lib/data-service"
-import { useOrder, useUser, useUpdateOrderStatus } from "@/lib/hooks"
-import type { OrderStatus } from "@/lib/data-service"
-
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { User, Phone, MapPin, Calendar, Clock } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatPrice } from "@/lib/utils";
+import { useOrder, useUser, useUpdateOrderStatus } from "@/lib/hooks";
+import { OrderStatus } from "@prisma/client";
 export default function AdminOrderDetail({ orderId }: { orderId: number }) {
-  const router = useRouter()
-  const { data: order, isLoading } = useOrder(orderId)
-  const { data: user } = useUser(order?.userId || 0)
-  const updateOrderStatusMutation = useUpdateOrderStatus()
+  const router = useRouter();
+  const { data: order, isLoading } = useOrder(orderId);
+  const { data: user } = useUser(order?.userId || 0);
+  const updateOrderStatusMutation = useUpdateOrderStatus();
 
   if (isLoading) {
-    return <p className="text-center py-10">Загрузка деталей заказа...</p>
+    return <p className="text-center py-10">Загрузка деталей заказа...</p>;
   }
 
   if (!order) {
-    router.push("/admin")
-    return null
+    router.push("/admin");
+    return null;
   }
 
   const handleStatusChange = (newStatus: OrderStatus) => {
-    updateOrderStatusMutation.mutate({ id: order.id, status: newStatus })
-  }
+    updateOrderStatusMutation.mutate({ id: order.id, status: newStatus });
+  };
 
   const getStatusText = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "Ожидает обработки"
+        return "Ожидает обработки";
       case "PROCESSING":
-        return "Обработка"
+        return "Обработка";
       case "SHIPPED":
-        return "Отправлен"
+        return "Отправлен";
       case "DELIVERED":
-        return "Доставлен"
+        return "Доставлен";
       case "CANCELLED":
-        return "Отменен"
+        return "Отменен";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "DELIVERED":
-        return "default"
+        return "default";
       case "SHIPPED":
-        return "secondary"
+        return "secondary";
       case "CANCELLED":
-        return "destructive"
+        return "destructive";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -68,10 +73,17 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
             <h2 className="text-xl font-semibold">Информация о заказе</h2>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Статус:</span>
-              <Select value={order.status} onValueChange={(value) => handleStatusChange(value as OrderStatus)}>
+              <Select
+                value={order.status}
+                onValueChange={(value) =>
+                  handleStatusChange(value as OrderStatus)
+                }
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusText(order.status)}</Badge>
+                    <Badge variant={getStatusBadgeVariant(order.status)}>
+                      {getStatusText(order.status)}
+                    </Badge>
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -109,18 +121,20 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
                 <div className="relative w-16 h-16 flex-shrink-0">
                   <Image
                     src={"/placeholder.svg?height=100&width=100"}
-                    alt={item.name}
+                    alt={item.product.name}
                     fill
                     className="object-cover rounded-md"
                   />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <p className="font-semibold">${formatPrice(item.price * item.quantity)}</p>
+                    <h4 className="font-medium">{item.product.name}</h4>
+                    <p className="font-semibold">
+                      ${formatPrice(item.product.price * item.quantity)}
+                    </p>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500">
-                    <p>Цена: ${formatPrice(item.price)}</p>
+                    <p>Цена: ${formatPrice(item.product.price)}</p>
                     <p>Кол-во: {item.quantity}</p>
                   </div>
                 </div>
@@ -157,7 +171,7 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
               <User className="h-5 w-5 text-gray-500" />
               <div>
                 <p className="text-sm text-gray-500">Получатель</p>
-                <p>{user?.name || "Неизвестно"}</p>
+                <p>{user?.fullName || "Неизвестно"}</p>
               </div>
             </div>
 
@@ -173,7 +187,9 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
 
         {order.delivery === "DELIVERY" && user?.address && (
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Информация о доставке</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Информация о доставке
+            </h2>
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -183,26 +199,10 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
                   <p>{user.address}</p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <p className="text-sm text-gray-500">Квартира</p>
-                  <p>{user.apartment || "Н/Д"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Подъезд</p>
-                  <p>{user.entrance || "Н/Д"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Комната</p>
-                  <p>{user.room || "Н/Д"}</p>
-                </div>
-              </div>
             </div>
           </Card>
         )}
       </div>
     </div>
-  )
+  );
 }
-
