@@ -21,9 +21,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 // import { formatPrice } from "@/lib/data-service"
 import { useOrders, useProducts, useUsers } from "@/lib/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { getOrders } from "@/lib/data-service";
+import { formatPrice } from "@/lib/utils";
 
 export default function Dashboard() {
-  const { data: orders = [] } = useOrders();
+  const { data: orders = [] } = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => getOrders(),
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
   const { data: products = [] } = useProducts();
   const { data: users = [] } = useUsers();
 
@@ -139,7 +147,7 @@ export default function Dashboard() {
                 return (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">#{order.id}</TableCell>
-                    <TableCell>{user?.name || "Неизвестно"}</TableCell>
+                    <TableCell>{user?.fullName || "Неизвестно"}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(order.status)}>
                         {getStatusText(order.status)}
@@ -149,7 +157,7 @@ export default function Dashboard() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      ${formatPrice(order.total)}
+                      {formatPrice(order.total)}
                     </TableCell>
                     <TableCell>
                       <Link href={`/admin/orders/${order.id}`}>

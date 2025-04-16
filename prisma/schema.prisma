@@ -78,6 +78,7 @@ enum Lang {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PROCESSING
   DELIVERED
   CANCELED
 }

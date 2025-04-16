@@ -6,16 +6,28 @@ const prisma = new PrismaClient();
 
 // Categories
 export async function getCategories() {
-  return await prisma.category.findMany();
+  return await prisma.category.findMany({
+    where: { parentId: null },
+    include: { subCategories: true },
+  });
+}
+export async function getSubcategories(parentId: number) {
+  return await prisma.category.findMany({ where: { parentId: parentId } });
 }
 
 export async function getCategory(id: number) {
-  return await prisma.category.findUnique({ where: { id } });
+  return await prisma.category.findUnique({
+    where: { id },
+    include: { subCategories: true },
+  });
 }
 
 // Products
 export async function getProducts() {
-  return await prisma.product.findMany();
+  return await prisma.product.findMany({
+    include: { category: { include: { parent: true } } },
+    orderBy: { updatedAt: "desc" },
+  });
 }
 
 export async function getProductsByCategory(categoryId: number) {
@@ -94,9 +106,8 @@ export async function getCart(userId: number) {
 // }
 
 // Orders
-export async function getOrders(userId: number) {
+export async function getOrders() {
   return await prisma.order.findMany({
-    where: { userId },
     include: { items: true },
   });
 }
