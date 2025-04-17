@@ -1,6 +1,6 @@
 "use client";
 
-import type { OrderStatus, Product } from "@/generated/prisma";
+import type { OrderStatus, Product } from "@prisma/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProducts,

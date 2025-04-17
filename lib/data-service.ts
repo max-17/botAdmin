@@ -1,22 +1,21 @@
 "use server";
-import { OrderStatus, PrismaClient } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 // import { formatPrice } from "./utils"; // Assuming you have a utility file for formatting prices
-import type { OrderItem, Product } from "@/generated/prisma";
-const prisma = new PrismaClient();
-
+import type { Product } from "@prisma/client";
+import { db } from "./db";
 // Categories
 export async function getCategories() {
-  return await prisma.category.findMany({
+  return await db.category.findMany({
     where: { parentId: null },
     include: { subCategories: true },
   });
 }
 export async function getSubcategories(parentId: number) {
-  return await prisma.category.findMany({ where: { parentId: parentId } });
+  return await db.category.findMany({ where: { parentId: parentId } });
 }
 
 export async function getCategory(id: number) {
-  return await prisma.category.findUnique({
+  return await db.category.findUnique({
     where: { id },
     include: { subCategories: true },
   });
@@ -24,24 +23,24 @@ export async function getCategory(id: number) {
 
 // Products
 export async function getProducts() {
-  return await prisma.product.findMany({
+  return await db.product.findMany({
     include: { category: { include: { parent: true } } },
     orderBy: { updatedAt: "desc" },
   });
 }
 
 export async function getProductsByCategory(categoryId: number) {
-  return await prisma.product.findMany({ where: { categoryId } });
+  return await db.product.findMany({ where: { categoryId } });
 }
 
 export async function getProduct(id: number) {
-  return await prisma.product.findUnique({ where: { id } });
+  return await db.product.findUnique({ where: { id } });
 }
 
 export async function createProduct(
   product: Omit<Product, "id" | "createdAt" | "updatedAt">
 ) {
-  return await prisma.product.create({
+  return await db.product.create({
     data: {
       ...product,
       createdAt: new Date(),
@@ -54,7 +53,7 @@ export async function updateProduct(
   id: number,
   updates: Partial<Omit<Product, "id" | "createdAt" | "updatedAt">>
 ) {
-  return await prisma.product.update({
+  return await db.product.update({
     where: { id },
     data: {
       ...updates,
@@ -64,12 +63,12 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: number) {
-  return await prisma.product.delete({ where: { id } });
+  return await db.product.delete({ where: { id } });
 }
 
 // Cart
 export async function getCart(userId: number) {
-  return await prisma.orderItem.findMany({
+  return await db.orderItem.findMany({
     where: { order: { userId, status: "PENDING" } },
   });
 }
@@ -107,13 +106,13 @@ export async function getCart(userId: number) {
 
 // Orders
 export async function getOrders() {
-  return await prisma.order.findMany({
+  return await db.order.findMany({
     include: { items: true },
   });
 }
 
 export async function getOrder(id: number) {
-  return await prisma.order.findUnique({
+  return await db.order.findUnique({
     where: { id },
     include: { items: { include: { product: true } } },
   });
@@ -156,7 +155,7 @@ export async function getOrder(id: number) {
 // }
 
 export async function updateOrderStatus(id: number, status: OrderStatus) {
-  return await prisma.order.update({
+  return await db.order.update({
     where: { id },
     data: { status, updatedAt: new Date() },
   });
@@ -164,9 +163,9 @@ export async function updateOrderStatus(id: number, status: OrderStatus) {
 
 // Users
 export async function getUsers() {
-  return await prisma.user.findMany();
+  return await db.user.findMany();
 }
 
 export async function getUser(id: number) {
-  return await prisma.user.findUnique({ where: { id } });
+  return await db.user.findUnique({ where: { id } });
 }

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { formatPrice } from "@/lib/utils";
 import { useOrder, useUser, useUpdateOrderStatus } from "@/lib/hooks";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 export default function AdminOrderDetail({ orderId }: { orderId: number }) {
   const router = useRouter();
   const { data: order, isLoading } = useOrder(orderId);

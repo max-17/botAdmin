@@ -12,7 +12,6 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "6.5.0",
-    "@prisma/nextjs-monorepo-workaround-plugin": "^6.6.0",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-aspect-ratio": "^1.1.1",
@@ -74,9 +73,6 @@
     "typescript": "^5"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@prisma/client"
-    ],
     "onlyBuiltDependencies": [
       "@prisma/client",
       "@prisma/engines",
