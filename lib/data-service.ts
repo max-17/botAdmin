@@ -1,7 +1,7 @@
 "use server";
-import { OrderStatus, PrismaClient } from "@prisma/client";
+import { OrderStatus, PrismaClient } from "@/generated/prisma";
 // import { formatPrice } from "./utils"; // Assuming you have a utility file for formatting prices
-import type { OrderItem, Product } from "@prisma/client";
+import type { OrderItem, Product } from "@/generated/prisma";
 const prisma = new PrismaClient();
 
 // Categories
