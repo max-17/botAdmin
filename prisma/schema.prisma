@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  // output   = "../generated/client"
-  // engineType    = "dataproxy"
+  provider      = "prisma-client-js"
+  output        = "./generated/prisma"
+  binaryTargets = "native"
 }
 
 datasource db {
