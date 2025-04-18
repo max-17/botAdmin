@@ -108,6 +108,7 @@ export async function getCart(userId: number) {
 export async function getOrders() {
   return await db.order.findMany({
     include: { items: true },
+    orderBy: { updatedAt: "desc" },
   });
 }
 

@@ -19,13 +19,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// import { formatPrice } from "@/lib/data-service"
-import { useOrders, useProducts, useUsers } from "@/lib/hooks";
+import { useProducts, useUsers } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "@/lib/data-service";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
+  const router = useRouter();
   const { data: orders = [] } = useQuery({
     queryKey: ["orders"],
     queryFn: () => getOrders(),
@@ -38,38 +39,8 @@ export default function Dashboard() {
   // Calculate some summary data
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const newOrdersCount = orders.filter(
-    (order) => order.status === "PENDING" || order.status === "PROCESSING"
+    (order) => order.status === "CONFIRMED"
   ).length;
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Ожидает обработки";
-      case "PROCESSING":
-        return "Обработка";
-      case "SHIPPED":
-        return "Отправлен";
-      case "DELIVERED":
-        return "Доставлен";
-      case "CANCELLED":
-        return "Отменен";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "DELIVERED":
-        return "default";
-      case "SHIPPED":
-        return "secondary";
-      case "CANCELLED":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -77,11 +48,10 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Общий доход</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${formatPrice(totalRevenue)}
+              {formatPrice(totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               +12% с прошлого месяца
@@ -138,14 +108,19 @@ export default function Dashboard() {
                 <TableHead>Статус</TableHead>
                 <TableHead>Дата</TableHead>
                 <TableHead className="text-right">Сумма</TableHead>
-                <TableHead className="w-[80px]">Действия</TableHead>
+                {/* <TableHead className="w-[80px]">Действия</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.slice(0, 5).map((order) => {
                 const user = users.find((u) => u.id === order.userId);
                 return (
-                  <TableRow key={order.id}>
+                  <TableRow
+                    onClick={() => {
+                      router.push(`/admin/orders/${order.id}`);
+                    }}
+                    key={order.id}
+                  >
                     <TableCell className="font-medium">#{order.id}</TableCell>
                     <TableCell>{user?.fullName || "Неизвестно"}</TableCell>
                     <TableCell>
@@ -159,13 +134,13 @@ export default function Dashboard() {
                     <TableCell className="text-right">
                       {formatPrice(order.total)}
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Link href={`/admin/orders/${order.id}`}>
                         <Button variant="ghost" size="sm">
                           Детали
                         </Button>
                       </Link>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 );
               })}
