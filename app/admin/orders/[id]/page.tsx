@@ -4,7 +4,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-export default function AdminOrderDetailsPage({ params }: { params: { id: string } }) {
+export default async function AdminOrderDetailsPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return (
     <div className="container mx-auto py-6 px-4 max-w-4xl">
       <div className="flex items-center mb-6">
