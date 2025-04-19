@@ -41,28 +41,26 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
               <div className="mb-6">
                 <RadioGroup
                   defaultValue={selectedStatus}
-                  value={selectedStatus || undefined}
                   onValueChange={(value) => {
                     console.log(value);
 
                     handleStatusChange(value as OrderStatus);
                   }}
-                  className="grid grid-cols-2 md:grid-cols-5 gap-2"
+                  className="flex gap-0 bg-black/10 p-1.5 rounded-lg"
                 >
                   {Object.keys(OrderStatus).map((status) => (
-                    <>
-                      <Label
-                        htmlFor="status-cancelled"
-                        className={`min-w-fit items-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-black`}
-                      >
-                        {getStatusText(status as OrderStatus)}
-                      </Label>
+                    <Label
+                      key={status}
+                      htmlFor={`status-${status}`}
+                      className={`min-w-fit items-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:bg-primary [&:has([data-state=checked])]:bg-primary peer-data-[state=checked]:text-white [&:has([data-state=checked])]:text-white `}
+                    >
+                      {getStatusText(status as OrderStatus)}
                       <RadioGroupItem
                         value={status}
                         id={`status-${status}`}
                         className="sr-only"
                       />
-                    </>
+                    </Label>
                   ))}
                 </RadioGroup>
               </div>
