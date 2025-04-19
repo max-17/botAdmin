@@ -1,6 +1,4 @@
 "use client";
-
-import Link from "next/link";
 import {
   Card,
   CardHeader,
@@ -17,8 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
 import { useOrders, useUsers } from "@/lib/hooks";
 import { useRouter } from "next/navigation";

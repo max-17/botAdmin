@@ -5,17 +5,11 @@ import Image from "next/image";
 import { User, Phone, MapPin, Calendar, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { formatPrice } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { formatPrice, getStatusText } from "@/lib/utils";
 import { useOrder, useUser, useUpdateOrderStatus } from "@/lib/hooks";
 import { OrderStatus } from "@prisma/client";
+import { Label } from "@/components/ui/label";
 export default function AdminOrderDetail({ orderId }: { orderId: number }) {
   const router = useRouter();
   const { data: order, isLoading } = useOrder(orderId);
@@ -30,70 +24,48 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
     router.push("/admin");
     return null;
   }
+  const selectedStatus = order.status as OrderStatus;
 
   const handleStatusChange = (newStatus: OrderStatus) => {
     updateOrderStatusMutation.mutate({ id: order.id, status: newStatus });
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Ожидает обработки";
-      case "PROCESSING":
-        return "Обработка";
-      case "SHIPPED":
-        return "Отправлен";
-      case "DELIVERED":
-        return "Доставлен";
-      case "CANCELLED":
-        return "Отменен";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "DELIVERED":
-        return "default";
-      case "SHIPPED":
-        return "secondary";
-      case "CANCELLED":
-        return "destructive";
-      default:
-        return "outline";
-    }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-2 space-y-6">
         <Card className="p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Информация о заказе</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Статус:</span>
-              <Select
-                value={order.status}
-                onValueChange={(value) =>
-                  handleStatusChange(value as OrderStatus)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>
-                      {getStatusText(order.status)}
-                    </Badge>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDING">Ожидает обработки</SelectItem>
-                  <SelectItem value="PROCESSING">Обработка</SelectItem>
-                  <SelectItem value="SHIPPED">Отправлен</SelectItem>
-                  <SelectItem value="DELIVERED">Доставлен</SelectItem>
-                  <SelectItem value="CANCELLED">Отменен</SelectItem>
-                </SelectContent>
-              </Select>
+              <span className="text-sm mb-auto text-gray-500">Статус:</span>
+              <div className="mb-6">
+                <RadioGroup
+                  defaultValue={selectedStatus}
+                  value={selectedStatus || undefined}
+                  onValueChange={(value) => {
+                    console.log(value);
+
+                    handleStatusChange(value as OrderStatus);
+                  }}
+                  className="grid grid-cols-2 md:grid-cols-5 gap-2"
+                >
+                  {Object.keys(OrderStatus).map((status) => (
+                    <>
+                      <Label
+                        htmlFor="status-cancelled"
+                        className={`min-w-fit items-center rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-black`}
+                      >
+                        {getStatusText(status as OrderStatus)}
+                      </Label>
+                      <RadioGroupItem
+                        value={status}
+                        id={`status-${status}`}
+                        className="sr-only"
+                      />
+                    </>
+                  ))}
+                </RadioGroup>
+              </div>
             </div>
           </div>
 
