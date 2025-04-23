@@ -13,6 +13,7 @@ import Dashboard from "./components/dashboard";
 import OrdersManagement from "./components/orders-management";
 import ProductsManagement from "./components/products-management";
 import CustomersManagement from "./components/customers-management";
+import CategoriesManagement from "@/components/categories-management";
 
 export default function AdminPage() {
   const searchParams = useSearchParams();
@@ -92,6 +93,17 @@ export default function AdminPage() {
             >
               <span>Клиенты</span>
             </Link>
+            <Link
+              href={createTabUrl("categories")}
+              replace={true}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
+                activeTab === "categories"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground"
+              } transition-all hover:text-foreground`}
+            >
+              <span>Категории</span>
+            </Link>
           </nav>
         </aside>
         <main className="flex-1 p-6">
@@ -108,6 +120,7 @@ export default function AdminPage() {
                 <TabsTrigger value="orders">Заказы</TabsTrigger>
                 <TabsTrigger value="products">Товары</TabsTrigger>
                 <TabsTrigger value="customers">Клиенты</TabsTrigger>
+                <TabsTrigger value="categories">Категории</TabsTrigger>
               </TabsList>
             </div>
 
@@ -125,6 +138,9 @@ export default function AdminPage() {
 
             <TabsContent value="customers">
               <CustomersManagement />
+            </TabsContent>
+            <TabsContent value="categories">
+              <CategoriesManagement />
             </TabsContent>
           </Tabs>
         </main>

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatPrice, getStatusText } from "@/lib/utils";
-import { useOrder, useUser, useUpdateOrderStatus } from "@/lib/hooks";
+import { useOrder, useUser, useUpdateOrderStatus } from "@/hooks/hooks";
 import { OrderStatus } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 export default function AdminOrderDetail({ orderId }: { orderId: number }) {
@@ -100,11 +100,11 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
                   <div className="flex justify-between">
                     <h4 className="font-medium">{item.product.name}</h4>
                     <p className="font-semibold">
-                      ${formatPrice(item.product.price * item.quantity)}
+                      {formatPrice(item.product.price * item.quantity)}
                     </p>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500">
-                    <p>Цена: ${formatPrice(item.product.price)}</p>
+                    <p>Цена: {formatPrice(item.product.price)}</p>
                     <p>Кол-во: {item.quantity}</p>
                   </div>
                 </div>
@@ -116,17 +116,13 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span>Подытог</span>
-              <span>${formatPrice(order.total - 500)}</span>
-            </div>
-            <div className="flex justify-between">
               <span>Доставка</span>
-              <span>$5.00</span>
+              <span>5.00</span>
             </div>
             <Separator className="my-2" />
             <div className="flex justify-between font-bold">
               <span>Итого</span>
-              <span>${formatPrice(order.total)}</span>
+              <span>{formatPrice(order.total)}</span>
             </div>
           </div>
         </Card>

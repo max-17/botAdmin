@@ -1,7 +1,7 @@
 "use server";
 import { OrderStatus } from "@prisma/client";
 // import { formatPrice } from "./utils"; // Assuming you have a utility file for formatting prices
-import type { Product } from "@prisma/client";
+import type { Category, Product } from "@prisma/client";
 import { db } from "./db";
 // Categories
 export async function getCategories() {
@@ -169,4 +169,27 @@ export async function getUsers() {
 
 export async function getUser(id: number) {
   return await db.user.findUnique({ where: { id } });
+}
+
+// Categories and Subcategories
+export async function createCategory(category: Omit<Category, "id">) {
+  const newCategory = await db.category.create({
+    data: category,
+  });
+  return newCategory;
+}
+
+export async function updateCategory(
+  id: number,
+  updates: Partial<Omit<Category, "id">>
+) {
+  return await db.category.update({
+    where: { id },
+    data: updates,
+  });
+}
+
+export async function deleteCategory(id: number) {
+  // Проверяем, есть ли товары в этой категории
+  return await db.category.delete({ where: { id } });
 }

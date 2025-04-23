@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
-import { useOrders, useUsers } from "@/lib/hooks";
+import { useOrders, useUsers } from "@/hooks/hooks";
 import { useRouter } from "next/navigation";
 
 export default function OrdersManagement() {

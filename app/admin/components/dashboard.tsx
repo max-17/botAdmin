@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useProducts, useUsers } from "@/lib/hooks";
+import { useProducts, useUsers } from "@/hooks/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "@/lib/data-service";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";

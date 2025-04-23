@@ -35,7 +35,7 @@ import {
   useDeleteProduct,
   useCreateProduct,
   useUpdateProduct,
-} from "@/lib/hooks";
+} from "@/hooks/hooks";
 import {
   Dialog,
   DialogContent,
@@ -331,7 +331,7 @@ export default function ProductsManagement() {
           description: data.description,
           price: Number.parseInt(data.price),
           imageUrl: data.imageUrl,
-          categoryId: data.subcategoryId,
+          categoryId: parseInt(data.subcategoryId),
         },
         {
           onSuccess: () => closeDialog(),
@@ -698,6 +698,9 @@ export default function ProductsManagement() {
                       setValue("categoryId", value);
                       setValue("subcategoryId", ""); // Reset subcategory when category changes
                     }}
+                    {...register("categoryId", {
+                      required: "Категория обязательна",
+                    })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите категорию" />
@@ -713,6 +716,11 @@ export default function ProductsManagement() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.categoryId && (
+                    <p className="text-red-500 text-sm">
+                      {errors.categoryId.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
