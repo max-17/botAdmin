@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
 import { useOrders, useUsers } from "@/hooks/hooks";
 import { useRouter } from "next/navigation";
+import { Eye, Link } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function OrdersManagement() {
   const router = useRouter();
@@ -40,7 +42,6 @@ export default function OrdersManagement() {
               <TableHead>Дата</TableHead>
               <TableHead>Товары</TableHead>
               <TableHead className="text-right">Сумма</TableHead>
-              {/* <TableHead className="w-[80px]">Действия</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,13 +66,6 @@ export default function OrdersManagement() {
                   <TableCell className="text-right">
                     ${formatPrice(order.total)}
                   </TableCell>
-                  {/* <TableCell>
-                    <Link href={`/admin/orders/${order.id}`}>
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </TableCell> */}
                 </TableRow>
               );
             })}

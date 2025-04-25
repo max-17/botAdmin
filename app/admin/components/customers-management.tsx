@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatPrice } from "@/lib/data-service";
+import { formatPrice } from "@/lib/utils";
 import { useUsers, useOrders } from "@/hooks/hooks";
 
 export default function CustomersManagement() {
@@ -52,20 +52,26 @@ export default function CustomersManagement() {
                 userOrders.length > 0
                   ? userOrders.sort(
                       (a, b) =>
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime()
+                        new Date(b.updatedAt).getTime() -
+                        new Date(a.updatedAt).getTime()
                     )[0]
                   : null;
 
               return (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="font-medium">{user.fullName}</TableCell>
                   <TableCell>{user.phone}</TableCell>
-                  <TableCell>{userOrders.length}</TableCell>
+                  <TableCell>
+                    {
+                      userOrders.filter(
+                        (o) => o.status !== "PENDING" && o.status !== "CANCELED"
+                      ).length
+                    }
+                  </TableCell>
                   <TableCell>${formatPrice(totalSpent)}</TableCell>
                   <TableCell>
                     {lastOrder
-                      ? new Date(lastOrder.createdAt).toLocaleDateString()
+                      ? new Date(lastOrder.updatedAt).toLocaleDateString()
                       : "Н/Д"}
                   </TableCell>
                 </TableRow>

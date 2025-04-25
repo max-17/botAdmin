@@ -5,11 +5,9 @@ import Image from "next/image";
 import { User, Phone, MapPin, Calendar, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
 import { useOrder, useUser, useUpdateOrderStatus } from "@/hooks/hooks";
 import { OrderStatus } from "@prisma/client";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,8 +30,6 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
     router.push("/admin");
     return null;
   }
-  const selectedStatus = order.status as OrderStatus;
-
   const handleStatusChange = (newStatus: OrderStatus) => {
     updateOrderStatusMutation.mutate({ id: order.id, status: newStatus });
   };
