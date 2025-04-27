@@ -122,7 +122,7 @@ export default function Dashboard() {
                     key={order.id}
                   >
                     <TableCell className="font-medium">#{order.id}</TableCell>
-                    <TableCell>{user?.fullName || "Неизвестно"}</TableCell>
+                    <TableCell>{user?.name || "Неизвестно"}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(order.status)}>
                         {getStatusText(order.status)}

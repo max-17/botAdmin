@@ -133,7 +133,7 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
               <User className="h-5 w-5 text-gray-500" />
               <div>
                 <p className="text-sm text-gray-500">Получатель</p>
-                <p>{user?.fullName || "Неизвестно"}</p>
+                <p>{user?.name || "Неизвестно"}</p>
               </div>
             </div>
 

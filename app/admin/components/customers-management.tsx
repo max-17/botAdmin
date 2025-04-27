@@ -59,7 +59,7 @@ export default function CustomersManagement() {
 
               return (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.fullName}</TableCell>
+                  <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.phone}</TableCell>
                   <TableCell>
                     {

@@ -30,7 +30,7 @@ model Account {
 
 model User {
   id            Int       @id @default(autoincrement())
-  fullName      String
+  name          String    @map("fullName")
   phone         String    @unique
   role          Role      @default(CUSTOMER)
   createdAt     DateTime  @default(now())
