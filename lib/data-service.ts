@@ -40,13 +40,18 @@ export async function getProduct(id: number) {
 export async function createProduct(
   product: Omit<Product, "id" | "createdAt" | "updatedAt">
 ) {
-  return await db.product.create({
-    data: {
-      ...product,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  });
+  try {
+    const newProduct = await db.product.create({
+      data: {
+        ...product,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    return newProduct;
+  } catch {
+    console.log("Creating product:", product);
+  }
 }
 
 export async function updateProduct(

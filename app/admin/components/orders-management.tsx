@@ -18,8 +18,6 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
 import { useOrders, useUsers } from "@/hooks/hooks";
 import { useRouter } from "next/navigation";
-import { Eye, Link } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function OrdersManagement() {
   const router = useRouter();
