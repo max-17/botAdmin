@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Box, DollarSign, Package, Users } from "lucide-react";
+import { Box, Package, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -18,23 +17,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useProducts, useUsers } from "@/hooks/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "@/lib/data-service";
 import { formatPrice, getStatusBadgeVariant, getStatusText } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { getDashboardData } from "@/app/server/actions";
+import { Product } from "@prisma/client";
+
+type DashboardData = {
+  revenueDifferencePercent: number | string;
+  thisMonthRevenue: number;
+  ordersThisMonth: number;
+  ordersToday: number;
+  ordersYesterday: number;
+  products: number;
+  users: number;
+};
 
 export default function Dashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardData>();
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      const data = await getDashboardData();
+      return setDashboardData(data);
+    }
+    fetchDashboardData();
+  }, []);
+
   const router = useRouter();
   const { data: orders = [] } = useQuery({
     queryKey: ["orders"],
-    queryFn: () => getOrders(),
+    queryFn: () => getOrders({ user: true }),
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
   const { data: products = [] } = useProducts();
-  const { data: users = [] } = useUsers();
 
   // Calculate some summary data
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
@@ -47,14 +68,16 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Общий доход</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              общий доход месяца
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatPrice(totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              +12% с прошлого месяца
+              {dashboardData?.revenueDifferencePercent}% с прошлого месяца
             </p>
           </CardContent>
         </Card>
@@ -66,7 +89,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{newOrdersCount}</div>
             <p className="text-xs text-muted-foreground">
-              +2 со вчерашнего дня
+              {dashboardData?.ordersToday} со вчерашнего дня
             </p>
           </CardContent>
         </Card>
@@ -86,7 +109,9 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">
+              {dashboardData?.users || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Активных клиентов</p>
           </CardContent>
         </Card>
@@ -113,7 +138,6 @@ export default function Dashboard() {
             </TableHeader>
             <TableBody>
               {orders.slice(0, 5).map((order) => {
-                const user = users.find((u) => u.id === order.userId);
                 return (
                   <TableRow
                     onClick={() => {
@@ -122,7 +146,7 @@ export default function Dashboard() {
                     key={order.id}
                   >
                     <TableCell className="font-medium">#{order.id}</TableCell>
-                    <TableCell>{user?.name || "Неизвестно"}</TableCell>
+                    <TableCell>{order.user?.name || "Неизвестно"}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(order.status)}>
                         {getStatusText(order.status)}

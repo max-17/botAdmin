@@ -35,16 +35,10 @@ export default function AdminPage() {
           <Package className="h-6 w-6" />
           <span>Админ-панель стоматологических товаров</span>
         </Link>
-        <div className="ml-auto flex items-center gap-4">
-          <form className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Поиск..." className="w-64 pl-8" />
-          </form>
-          <Button variant="outline" size="icon">
-            <Settings className="h-4 w-4" />
-            <span className="sr-only">Настройки</span>
-          </Button>
-        </div>
+        <Button className="ml-auto" variant="outline" size="icon">
+          <Settings className="h-4 w-4" />
+          <span className="sr-only">Настройки</span>
+        </Button>
       </header>
       <div className="flex flex-1">
         <aside className="w-64 border-r bg-muted/40 hidden md:block">

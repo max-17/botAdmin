@@ -66,7 +66,7 @@ export function useCategory(id: number) {
 export function useOrders() {
   return useQuery({
     queryKey: ["orders"],
-    queryFn: getOrders,
+    queryFn: () => getOrders(),
   });
 }
 

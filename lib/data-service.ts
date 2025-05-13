@@ -110,9 +110,9 @@ export async function getCart(userId: number) {
 // }
 
 // Orders
-export async function getOrders() {
+export async function getOrders(include?: { user?: boolean }) {
   return await db.order.findMany({
-    include: { items: true },
+    include: { items: true, user: include?.user && { select: { name: true } } },
     orderBy: { updatedAt: "desc" },
   });
 }
