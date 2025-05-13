@@ -72,7 +72,7 @@ export function useOrders() {
 
 export function useOrder(id: number) {
   return useQuery({
-    queryKey: ["orders", id],
+    queryKey: ["order", id],
     queryFn: () => getOrder(id),
     enabled: !!id,
   });
@@ -101,9 +101,46 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: OrderStatus }) =>
       updateOrderStatus(id, status),
-    onSuccess: (_, variables) => {
+    onMutate: async (updatedOrder) => {
+      // Cancel any outgoing refetches
+      // (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["order", updatedOrder.id] });
+
+      // Snapshot the previous value
+      const previousState = queryClient.getQueryData([
+        "order",
+        updatedOrder.id,
+      ]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["order", updatedOrder.id], (oldOrder: any) => {
+        if (typeof oldOrder === "object" && oldOrder !== null) {
+          return {
+            ...oldOrder,
+            ...updatedOrder,
+          };
+        }
+        return updatedOrder;
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousState };
+    },
+    // If the mutation fails,
+    // use the context returned from onMutate to roll back
+    onError: (err, updatedOrder, context) => {
+      queryClient.setQueryData(
+        ["order", updatedOrder.id],
+        context?.previousState
+      );
+    },
+    // Always refetch after error or success:
+    onSettled: (updatedOrder) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["orders", variables.id] });
+      // invalidate ["order", order.id]
+      if (updatedOrder?.id) {
+        queryClient.invalidateQueries({ queryKey: ["order", updatedOrder.id] });
+      } else queryClient.invalidateQueries({ queryKey: ["order"] });
     },
   });
 }

@@ -56,7 +56,7 @@ export default function AdminOrderDetail({ orderId }: { orderId: number }) {
               </SelectTrigger>
               <SelectContent>
                 {Object.values(OrderStatus).map((status) => (
-                  <SelectItem value={status}>
+                  <SelectItem key={status} value={status}>
                     {getStatusText(status)}
                   </SelectItem>
                 ))}
